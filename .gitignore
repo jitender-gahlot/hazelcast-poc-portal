@@ -1,0 +1,25 @@
+# Environment / secrets
+.env
+*.pem
+*.key
+*.crt
+
+# Node
+backend/node_modules/
+node_modules/
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Claude memory
+.claude/

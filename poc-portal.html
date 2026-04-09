@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POC Scope Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0a0d14;
+  --surface:   #111620;
+  --surface2:  #181e2e;
+  --surface3:  #1e2740;
+  --border:    #232d42;
+  --border2:   #2e3d5a;
+  --accent:    #3b82f6;
+  --accent2:   #60a5fa;
+  --accent-dim:#1d3461;
+  --teal:      #14b8a6;
+  --teal-dim:  #0d3d38;
+  --amber:     #f59e0b;
+  --amber-dim: #3d2c08;
+  --coral:     #f43f5e;
+  --coral-dim: #3d0f1a;
+  --green:     #22c55e;
+  --green-dim: #0d3320;
+  --text:      #e2e8f0;
+  --text2:     #94a3b8;
+  --text3:     #64748b;
+  --mono:      'DM Mono', monospace;
+  --sans:      'Sora', sans-serif;
+  --radius:    8px;
+  --radius2:   12px;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; }
+
+/* ── scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── utility ── */
+.hidden { display: none !important; }
+.mono { font-family: var(--mono); }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; font-family: var(--mono); letter-spacing: .03em; }
+.tag-blue { background: var(--accent-dim); color: var(--accent2); border: 1px solid rgba(59,130,246,.25); }
+.tag-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid rgba(20,184,166,.25); }
+.tag-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
+.tag-coral { background: var(--coral-dim); color: var(--coral); border: 1px solid rgba(244,63,94,.25); }
+.tag-green { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+.tag-gray { background: var(--surface3); color: var(--text2); border: 1px solid var(--border); }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+/* ── forms ── */
+input, textarea, select {
+  width: 100%; padding: 9px 12px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: var(--radius); color: var(--text); font-family: var(--sans); font-size: 13px;
+  outline: none; transition: border-color .15s;
+}
+input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+input::placeholder, textarea::placeholder { color: var(--text3); }
+textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+select option { background: var(--surface2); }
+label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; letter-spacing: .04em; text-transform: uppercase; }
+
+.field { margin-bottom: 16px; }
+.field-hint { font-size: 11px; color: var(--text3); margin-top: 4px; font-style: italic; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media(max-width:640px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+/* ── buttons ── */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); font-family: var(--sans); font-size: 13px; font-weight: 500; cursor: pointer; transition: all .15s; border: 1px solid transparent; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+.btn-ghost { background: transparent; color: var(--text2); border-color: var(--border2); }
+.btn-ghost:hover { background: var(--surface2); color: var(--text); }
+.btn-danger { background: transparent; color: var(--coral); border-color: rgba(244,63,94,.3); }
+.btn-danger:hover { background: var(--coral-dim); }
+.btn-teal { background: var(--teal-dim); color: var(--teal); border-color: rgba(20,184,166,.3); }
+.btn-teal:hover { background: rgba(20,184,166,.2); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ── card ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 20px 24px; margin-bottom: 16px; }
+.card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; letter-spacing: .02em; }
+.card-title::before { content: ''; display: block; width: 3px; height: 16px; background: var(--accent); border-radius: 2px; flex-shrink: 0; }
+.card-title .accent-bar-teal::before { background: var(--teal); }
+
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.section-num { width: 28px; height: 28px; background: var(--accent-dim); border: 1px solid rgba(59,130,246,.3); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 12px; font-weight: 500; color: var(--accent2); flex-shrink: 0; }
+.section-num.teal { background: var(--teal-dim); border-color: rgba(20,184,166,.3); color: var(--teal); }
+.section-title { font-size: 15px; font-weight: 600; }
+.section-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+.info-box { border-radius: var(--radius); padding: 10px 14px; margin-bottom: 16px; font-size: 12px; line-height: 1.7; border-left: 3px solid; }
+.info-blue { background: rgba(59,130,246,.07); border-color: var(--accent); color: var(--text2); }
+.info-amber { background: rgba(245,158,11,.07); border-color: var(--amber); color: #c9a84c; }
+.info-teal { background: rgba(20,184,166,.07); border-color: var(--teal); color: var(--teal); }
+.info-coral { background: rgba(244,63,94,.07); border-color: var(--coral); color: #e07585; }
+
+/* ── checkbox list ── */
+.check-list { display: flex; flex-direction: column; gap: 8px; }
+.check-item { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 8px 10px; border-radius: var(--radius); border: 1px solid transparent; transition: all .12s; }
+.check-item:hover { background: var(--surface2); border-color: var(--border); }
+.check-item input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+.check-item-text { font-size: 13px; }
+.check-item-sub { font-size: 11px; color: var(--text3); }
+
+/* ── risk table ── */
+.risk-table { width: 100%; border-collapse: collapse; }
+.risk-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--text3); padding: 8px 12px; border-bottom: 1px solid var(--border); letter-spacing: .05em; text-transform: uppercase; }
+.risk-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 13px; }
+.risk-table tr:last-child td { border-bottom: none; }
+.risk-select { width: auto; padding: 3px 8px; font-size: 12px; }
+
+/* ── raci table ── */
+.raci-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.raci-table th { padding: 8px; text-align: center; color: var(--text3); font-weight: 500; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.raci-table th:first-child { text-align: left; }
+.raci-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); text-align: center; font-family: var(--mono); font-weight: 500; }
+.raci-table td:first-child { text-align: left; font-family: var(--sans); }
+.raci-table tr:last-child td { border-bottom: none; }
+.raci-R { color: var(--accent2); }
+.raci-A { color: var(--teal); }
+.raci-C { color: var(--amber); }
+.raci-I { color: var(--text3); }
+
+/* ── milestone ── */
+.milestone-list { display: flex; flex-direction: column; gap: 0; }
+.milestone-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.milestone-row:last-child { border-bottom: none; }
+.milestone-week { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent2); background: var(--accent-dim); border: 1px solid rgba(59,130,246,.2); padding: 3px 8px; border-radius: 4px; white-space: nowrap; margin-top: 2px; }
+.milestone-info { flex: 1; }
+.milestone-name { font-size: 13px; font-weight: 500; }
+.milestone-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+/* ── topbar ── */
+#topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; position: sticky; top: 0; z-index: 100; }
+.topbar-logo { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent2); letter-spacing: .08em; }
+.topbar-sep { flex: 1; }
+.topbar-user { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); }
+.topbar-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-dim); border: 1px solid rgba(59,130,246,.3); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--accent2); font-family: var(--mono); }
+
+/* ── login page ── */
+#page-login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
+.login-wrap { width: 100%; max-width: 400px; }
+.login-logo { text-align: center; margin-bottom: 32px; }
+.login-logo h1 { font-family: var(--mono); font-size: 18px; font-weight: 500; color: var(--accent2); letter-spacing: .1em; }
+.login-logo p { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.login-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 28px; }
+.login-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+.login-tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; margin-bottom: -1px; }
+.login-tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+/* ── dashboard ── */
+#page-dashboard { padding: 24px; max-width: 1100px; margin: 0 auto; }
+.dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.dash-title { font-size: 20px; font-weight: 600; }
+.dash-subtitle { font-size: 13px; color: var(--text3); margin-top: 2px; }
+.poc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.poc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 18px 20px; cursor: pointer; transition: all .15s; }
+.poc-card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); }
+.poc-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.poc-card-account { font-size: 15px; font-weight: 600; }
+.poc-card-meta { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.poc-card-footer { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.poc-card-owners { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.invite-code { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px; color: var(--text3); background: var(--surface3); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border); }
+.invite-code .copy-btn { cursor: pointer; color: var(--accent2); transition: color .12s; }
+.invite-code .copy-btn:hover { color: #fff; }
+
+/* ── poc detail ── */
+#page-poc { padding: 0; }
+.poc-topbar { height: 52px; background: var(--surface2); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 12px; }
+.poc-back { cursor: pointer; color: var(--text3); font-size: 12px; display: flex; align-items: center; gap: 4px; transition: color .12s; }
+.poc-back:hover { color: var(--text); }
+.poc-sep { color: var(--border2); }
+.poc-crumb-title { font-size: 14px; font-weight: 500; }
+
+.poc-tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); padding: 0 24px; }
+.poc-tab { padding: 14px 20px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; border-bottom: 2px solid transparent; transition: all .15s; display: flex; align-items: center; gap: 8px; }
+.poc-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.poc-tab:hover:not(.active) { color: var(--text2); }
+.poc-tab-internal { }
+.poc-tab-lock { font-size: 11px; background: var(--coral-dim); color: var(--coral); padding: 1px 6px; border-radius: 3px; }
+.poc-tab-eye { font-size: 11px; background: var(--teal-dim); color: var(--teal); padding: 1px 6px; border-radius: 3px; }
+
+.poc-body { display: flex; max-width: 1100px; margin: 0 auto; padding: 24px; gap: 24px; }
+.poc-main { flex: 1; min-width: 0; }
+.poc-sidebar { width: 260px; flex-shrink: 0; }
+@media(max-width: 900px) { .poc-body { flex-direction: column; } .poc-sidebar { width: 100%; } }
+
+/* ── sidebar meta ── */
+.sidebar-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius2); padding: 16px; margin-bottom: 12px; }
+.sidebar-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.sidebar-row:last-child { border-bottom: none; }
+.sidebar-key { color: var(--text3); font-family: var(--mono); font-size: 11px; }
+.sidebar-val { color: var(--text); font-weight: 500; text-align: right; max-width: 140px; word-break: break-word; }
+
+/* ── save bar ── */
+.save-bar { position: sticky; bottom: 0; background: var(--surface2); border-top: 1px solid var(--border); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; }
+.save-status { font-size: 12px; color: var(--text3); font-family: var(--mono); }
+.save-status.saved { color: var(--green); }
+
+/* ── modal ── */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.modal { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius2); width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; padding: 28px; }
+.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+/* ── empty state ── */
+.empty-state { text-align: center; padding: 60px 24px; color: var(--text3); }
+.empty-state-icon { font-size: 40px; margin-bottom: 16px; opacity: .4; }
+.empty-state-title { font-size: 15px; font-weight: 500; color: var(--text2); margin-bottom: 8px; }
+
+/* ── toast ── */
+#toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; color: var(--text); z-index: 999; opacity: 0; transform: translateY(8px); transition: all .2s; pointer-events: none; }
+#toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── prospect banner ── */
+.prospect-banner { background: var(--teal-dim); border: 1px solid rgba(20,184,166,.2); border-radius: var(--radius); padding: 10px 16px; margin-bottom: 16px; font-size: 12px; color: var(--teal); display: flex; align-items: center; gap: 8px; }
+
+/* ── section divider ── */
+.sec-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn .2s ease forwards; }
+
+.grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; }
+.stat-val { font-size: 24px; font-weight: 600; font-family: var(--mono); }
+.stat-lbl { font-size: 11px; color: var(--text3); margin-top: 2px; letter-spacing: .04em; text-transform: uppercase; }
+
+/* invite section */
+.invite-box { background: var(--surface3); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.invite-code-large { font-family: var(--mono); font-size: 18px; font-weight: 500; letter-spacing: .15em; color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: LOGIN
+═══════════════════════════════════════════════════════════ -->
+<div id="page-login">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <h1>◈ POC PORTAL</h1>
+      <p>Pre-sales Scope & Collaboration Platform</p>
+    </div>
+    <div class="login-card">
+      <div class="login-tabs">
+        <div class="login-tab active" onclick="switchLoginTab('signin')">Sign In</div>
+        <div class="login-tab" onclick="switchLoginTab('signup')">Sign Up</div>
+      </div>
+
+      <!-- SIGN IN -->
+      <div id="signin-form">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="si-email" placeholder="your@email.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="si-password" placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doSignIn()">Sign In →</button>
+        <div id="si-error" style="color:var(--coral);font-size:12px;margin-top:10px;display:none;"></div>
+      </div>
+
+      <!-- SIGN UP -->
+      <div id="signup-form" class="hidden">
+        <div class="info-box info-blue" style="margin-bottom:16px;">
+          Prospects: enter the POC invite code given by your solutions engineer to join a specific evaluation.
+        </div>
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="su-name" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="su-email" placeholder="your@company.com" />
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="su-password" placeholder="Min 6 characters" />
+        </div>
+        <div class="field">
+          <label>Account type</label>
+          <select id="su-role" onchange="togglePocCode()">
+            <option value="prospect">Prospect / Customer</option>
+            <option value="admin">SE / AE (Internal)</option>
+          </select>
+        </div>
+        <div class="field" id="poc-code-field">
+          <label>POC Invite Code</label>
+          <input type="text" id="su-code" placeholder="e.g. POC-XXXX" style="font-family:var(--mono);letter-spacing:.08em;" />
+          <div class="field-hint">Provided by your solutions engineer</div>
+        </div>
+        <div class="field" id="admin-code-field" style="display:none;">
+          <label>Internal Access Code</label>
+          <input type="password" id="su-admin-code" placeholder="Internal code" />
+          <div class="field-hint">Contact your admin for the internal access code</div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doSignUp()">Create Account →</button>
+        <div id="su-error" style="color:var(--coral);font-size:12px;margin-top:10px;display:none;"></div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--text3);margin-top:16px;">
+      Demo admin: <span class="mono" style="color:var(--accent2)">admin@poc.io / admin123</span> · Internal code: <span class="mono" style="color:var(--accent2)">SE2024</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOPBAR (shown when logged in)
+═══════════════════════════════════════════════════════════ -->
+<div id="topbar" class="hidden">
+  <span class="topbar-logo">◈ POC PORTAL</span>
+  <span class="topbar-sep"></span>
+  <div class="topbar-user">
+    <div class="topbar-avatar" id="tb-avatar">JD</div>
+    <span id="tb-name">User</span>
+    <span class="tag tag-blue" id="tb-role">admin</span>
+    <button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: DASHBOARD (admin only)
+═══════════════════════════════════════════════════════════ -->
+<div id="page-dashboard" class="hidden">
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">POC Workspaces</div>
+      <div class="dash-subtitle" id="dash-subtitle">All active evaluations</div>
+    </div>
+    <button class="btn btn-primary" onclick="openCreateModal()">+ New POC</button>
+  </div>
+
+  <div class="grid-stats">
+    <div class="stat-box"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Total POCs</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-active">0</div><div class="stat-lbl">Active</div></div>
+    <div class="stat-box"><div class="stat-val" id="stat-closed">0</div><div class="stat-lbl">Closed / Won</div></div>
+  </div>
+
+  <div id="poc-grid" class="poc-grid"></div>
+  <div id="poc-empty" class="empty-state hidden">
+    <div class="empty-state-icon">◫</div>
+    <div class="empty-state-title">No POCs yet</div>
+    <p style="font-size:13px;">Create your first POC workspace to get started.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: POC DETAIL
+═══════════════════════════════════════════════════════════ -->
+<div id="page-poc" class="hidden">
+  <div class="poc-topbar">
+    <span class="poc-back" onclick="goBack()">← Dashboard</span>
+    <span class="poc-sep">·</span>
+    <span class="poc-crumb-title" id="poc-crumb">Loading...</span>
+    <span style="flex:1;"></span>
+    <span class="tag tag-gray mono" id="poc-crumb-stage"></span>
+  </div>
+
+  <div class="poc-tabs" id="poc-tabs">
+    <div class="poc-tab active" id="tab-external" onclick="switchPocTab('external')">
+      <span>◎ Customer Workspace</span>
+      <span class="poc-tab-eye">customer-facing</span>
+    </div>
+    <div class="poc-tab" id="tab-internal" onclick="switchPocTab('internal')">
+      <span>◈ Internal Brief</span>
+      <span class="poc-tab-lock" id="internal-lock">SE/AE only</span>
+    </div>
+  </div>
+
+  <div class="poc-body">
+    <div class="poc-main">
+      <!-- EXTERNAL TAB -->
+      <div id="content-external" class="fade-in">
+        <div class="prospect-banner" id="prospect-banner" style="display:none;">
+          ◎ You are viewing your evaluation workspace. Fill in your requirements and review with your solutions engineer.
+        </div>
+
+        <!-- S1: Scope -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num">S1</div>
+            <div><div class="section-title">POC Scope Statement</div><div class="section-desc">What we are validating together</div></div>
+          </div>
+          <div class="field">
+            <label>Primary use case</label>
+            <input type="text" id="e-usecase" placeholder="e.g. Sub-50ms fraud scoring at 50K TPS with ML feature serving" />
+          </div>
+          <div class="field">
+            <label>Secondary use case (optional)</label>
+            <input type="text" id="e-usecase2" placeholder="Optional — only if it shares the same infrastructure" />
+          </div>
+          <div class="field">
+            <label>Scope narrative</label>
+            <textarea id="e-scope-narrative" placeholder="Brief description of what will be validated in this POC and why it matters for your organisation…"></textarea>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>Data volume in scope</label>
+              <input type="text" id="e-data-vol" placeholder="e.g. 50M records, 200GB hot dataset" />
+            </div>
+            <div class="field">
+              <label>Target throughput</label>
+              <input type="text" id="e-throughput" placeholder="e.g. 50K TPS reads / 5K TPS writes" />
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>POC environment</label>
+              <select id="e-env">
+                <option value="">— select —</option>
+                <option>Customer on-prem (isolated lab)</option>
+                <option>Customer private cloud</option>
+                <option>AWS (customer account)</option>
+                <option>Azure (customer account)</option>
+                <option>GCP (customer account)</option>
+                <option>Vendor sandbox (SE-provisioned)</option>
+                <option>Partner environment</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Production data</label>
+              <select id="e-proddata">
+                <option value="">— select —</option>
+                <option>No — synthetic / anonymised data only</option>
+                <option>Yes — with data masking</option>
+                <option>Yes — production data (DPA required)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- S2: Capabilities -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num">S2</div>
+            <div><div class="section-title">Capability Areas</div><div class="section-desc">Select all that apply to this evaluation</div></div>
+          </div>
+          <div class="check-list" id="capabilities-list">
+            <label class="check-item"><input type="checkbox" value="cache"><div><div class="check-item-text">In-memory data store / cache</div><div class="check-item-sub">Key-value, Map, JCache — sub-millisecond reads</div></div></label>
+            <label class="check-item"><input type="checkbox" value="stream"><div><div class="check-item-text">Stream processing / event pipeline</div><div class="check-item-sub">Jet / Flink integration, windowed aggregations</div></div></label>
+            <label class="check-item"><input type="checkbox" value="cp"><div><div class="check-item-text">CP / distributed coordination</div><div class="check-item-sub">Fenced locks, atomic operations, distributed transactions</div></div></label>
+            <label class="check-item"><input type="checkbox" value="wan"><div><div class="check-item-text">WAN replication / active-active</div><div class="check-item-sub">Multi-region, DR, data gravity</div></div></label>
+            <label class="check-item"><input type="checkbox" value="tiered"><div><div class="check-item-text">Near cache / tiered storage</div><div class="check-item-sub">HD memory, off-heap, hot-warm tiering</div></div></label>
+            <label class="check-item"><input type="checkbox" value="sql"><div><div class="check-item-text">SQL / vector query</div><div class="check-item-sub">Real-time analytics, JDBC, AI feature serving</div></div></label>
+            <label class="check-item"><input type="checkbox" value="security"><div><div class="check-item-text">Security / enterprise controls</div><div class="check-item-sub">TLS, RBAC, audit logging, Vault integration</div></div></label>
+            <label class="check-item"><input type="checkbox" value="mgmt"><div><div class="check-item-text">Management Center / observability</div><div class="check-item-sub">Metrics, alerts, cluster health dashboards</div></div></label>
+          </div>
+        </div>
+
+        <!-- S3: Exit Criteria -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num">S3</div>
+            <div><div class="section-title">Success Criteria</div><div class="section-desc">Measurable — agreed before kickoff</div></div>
+          </div>
+          <div class="info-box info-blue">These criteria define what "success" looks like. Both parties agree on these before the POC starts.</div>
+          <div class="field">
+            <label>Performance criterion</label>
+            <div class="two-col">
+              <input type="text" id="e-perf-metric" placeholder="Metric: e.g. p99 read latency" />
+              <input type="text" id="e-perf-target" placeholder="Target: e.g. < 10ms at 50K TPS" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Functional criterion</label>
+            <input type="text" id="e-func-crit" placeholder="e.g. Failover completes in < 30s with zero data loss" />
+          </div>
+          <div class="field">
+            <label>Operational criterion</label>
+            <input type="text" id="e-ops-crit" placeholder="e.g. Rolling upgrade of 5-node cluster with zero downtime" />
+          </div>
+          <div class="field">
+            <label>Integration criterion</label>
+            <input type="text" id="e-int-crit" placeholder="e.g. Kafka ingestion confirmed at 10K events/sec sustained" />
+          </div>
+          <div class="field">
+            <label>Additional criteria</label>
+            <textarea id="e-extra-crit" placeholder="Any additional customer-specific criteria…" style="min-height:56px;"></textarea>
+          </div>
+          <hr class="sec-divider">
+          <div class="field">
+            <label>Out of scope (agreed exclusions)</label>
+            <textarea id="e-out-scope" placeholder="e.g. Production sizing, full data migration, CI/CD pipeline, multi-tenancy…"></textarea>
+          </div>
+        </div>
+
+        <!-- S4: Timeline -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num">S4</div>
+            <div><div class="section-title">Timeline & Milestones</div><div class="section-desc">Agreed schedule for the evaluation</div></div>
+          </div>
+          <div class="three-col">
+            <div class="field">
+              <label>Kickoff date</label>
+              <input type="date" id="e-kickoff" />
+            </div>
+            <div class="field">
+              <label>Duration</label>
+              <select id="e-duration">
+                <option value="">—</option>
+                <option>2 weeks</option>
+                <option>3 weeks</option>
+                <option value="4 weeks" selected>4 weeks</option>
+                <option>6 weeks</option>
+                <option>8 weeks</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Results readout</label>
+              <input type="date" id="e-readout" />
+            </div>
+          </div>
+          <div class="milestone-list">
+            <div class="milestone-row"><span class="milestone-week">W1</span><div class="milestone-info"><div class="milestone-name">Environment Setup & Kickoff</div><div class="milestone-sub">Infra provisioned · Cluster deployed · Architecture walkthrough</div></div></div>
+            <div class="milestone-row"><span class="milestone-week">W2</span><div class="milestone-info"><div class="milestone-name">Core Integration & Data Loading</div><div class="milestone-sub">Connectors wired · Seed data loaded · Baseline benchmark</div></div></div>
+            <div class="milestone-row"><span class="milestone-week">W3</span><div class="milestone-info"><div class="milestone-name">Functional Validation</div><div class="milestone-sub">End-to-end use case working · Customer test scripts run</div></div></div>
+            <div class="milestone-row"><span class="milestone-week">W4</span><div class="milestone-info"><div class="milestone-name">Performance & Stress Testing</div><div class="milestone-sub">Load test vs SLA · Failure injection · Latency percentiles</div></div></div>
+            <div class="milestone-row"><span class="milestone-week" style="background:var(--teal-dim);color:var(--teal);border-color:rgba(20,184,166,.2);">✓</span><div class="milestone-info"><div class="milestone-name">Results Readout & Decision</div><div class="milestone-sub">Results deck · Go / No-go decision · Next steps agreed</div></div></div>
+          </div>
+          <div class="field" style="margin-top:16px;">
+            <label>Custom checkpoints / notes</label>
+            <textarea id="e-timeline-notes" placeholder="Add gate reviews, compliance checkpoints, or customer-specific milestones…" style="min-height:56px;"></textarea>
+          </div>
+        </div>
+
+        <!-- S5: Prerequisites & Decision Gate -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num">S5</div>
+            <div><div class="section-title">Pre-requisites & Decision Gate</div><div class="section-desc">What needs to be true before we start, and what happens at the end</div></div>
+          </div>
+          <label style="margin-bottom:10px;">Confirm pre-requisites before kickoff</label>
+          <div class="check-list" id="prereq-list">
+            <label class="check-item"><input type="checkbox" value="infra"><div><div class="check-item-text">Infrastructure provisioned and accessible before Day 1</div></div></label>
+            <label class="check-item"><input type="checkbox" value="network"><div><div class="check-item-text">Network / firewall rules opened</div></div></label>
+            <label class="check-item"><input type="checkbox" value="data"><div><div class="check-item-text">Test data prepared or synthetic generator agreed</div></div></label>
+            <label class="check-item"><input type="checkbox" value="resource"><div><div class="check-item-text">Customer developer resource committed (min 0.5 FTE)</div></div></label>
+            <label class="check-item"><input type="checkbox" value="legal"><div><div class="check-item-text">NDA / DPA signed if production data is in scope</div></div></label>
+            <label class="check-item"><input type="checkbox" value="license"><div><div class="check-item-text">License key / trial provisioned and tested</div></div></label>
+            <label class="check-item"><input type="checkbox" value="channel"><div><div class="check-item-text">Async support channel (Slack / Teams) created</div></div></label>
+          </div>
+          <hr class="sec-divider">
+          <div class="field">
+            <label>Go path (criteria met)</label>
+            <input type="text" id="e-go" placeholder="e.g. Move to commercial proposal within 2 weeks" />
+          </div>
+          <div class="field">
+            <label>No-go path (gap identified)</label>
+            <input type="text" id="e-nogo" placeholder="e.g. Identify specific gap, propose Phase 2" />
+          </div>
+          <div class="field">
+            <label>Communication rhythm</label>
+            <input type="text" id="e-comms" placeholder="e.g. Weekly sync Monday 10am · Async via Slack channel" />
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERNAL TAB -->
+      <div id="content-internal" class="fade-in hidden">
+        <div class="info-box info-coral" style="margin-bottom:20px;">
+          ◈ INTERNAL ONLY — This section is never visible to the prospect. Be candid. This is your deal intelligence layer.
+        </div>
+
+        <!-- I1: Deal Intelligence -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num" style="background:var(--coral-dim);border-color:rgba(244,63,94,.3);color:var(--coral);">I1</div>
+            <div><div class="section-title">Deal Intelligence</div><div class="section-desc">Real business pain, political context, and strategic drivers</div></div>
+          </div>
+          <div class="field">
+            <label>Real business pain (unfiltered)</label>
+            <textarea id="i-pain" placeholder="What the champion actually said behind closed doors. Specific quotes are gold here."></textarea>
+          </div>
+          <div class="field">
+            <label>Quantified impact</label>
+            <textarea id="i-impact" placeholder="₹/$ cost, regulatory penalty, SLA breach risk — with real numbers. e.g. ₹40Cr fraud exposure, 3 RBI notices." style="min-height:56px;"></textarea>
+          </div>
+          <div class="field">
+            <label>Strategic initiative context</label>
+            <input type="text" id="i-initiative" placeholder="e.g. 'Platform 2.0 — CTO mandate, budget pre-approved for Q3'" />
+          </div>
+          <div class="field">
+            <label>Why are they looking NOW?</label>
+            <textarea id="i-urgency" placeholder="Triggering event — contract expiry, incident, regulatory deadline, new CTO hire, board pressure…" style="min-height:56px;"></textarea>
+          </div>
+        </div>
+
+        <!-- I2: Stakeholder Intelligence -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num" style="background:var(--coral-dim);border-color:rgba(244,63,94,.3);color:var(--coral);">I2</div>
+            <div><div class="section-title">Stakeholder Intelligence</div><div class="section-desc">Who matters, who blocks, who champions</div></div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>Economic buyer</label>
+              <input type="text" id="i-buyer" placeholder="Name · Title · Budget authority" />
+            </div>
+            <div class="field">
+              <label>Technical champion</label>
+              <input type="text" id="i-champion" placeholder="Name · Team · Credibility level (H/M/L)" />
+            </div>
+            <div class="field">
+              <label>Champion's personal win</label>
+              <input type="text" id="i-champ-win" placeholder="What does YOUR champion get if this project succeeds?" />
+            </div>
+            <div class="field">
+              <label>Detractor / blocker</label>
+              <input type="text" id="i-blocker" placeholder="Name · Role · Their objection" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Internal politics notes</label>
+            <textarea id="i-politics" placeholder="Budget ownership disputes, open-source mandate, vendor loyalty, team restructuring, org chart changes…"></textarea>
+          </div>
+        </div>
+
+        <!-- I3: Competitive Intelligence -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num" style="background:var(--coral-dim);border-color:rgba(244,63,94,.3);color:var(--coral);">I3</div>
+            <div><div class="section-title">Competitive Intelligence</div><div class="section-desc">What we're up against</div></div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label>Incumbent technology</label>
+              <input type="text" id="i-incumbent" placeholder="e.g. Redis Enterprise 7.x on-prem, 24 nodes" />
+            </div>
+            <div class="field">
+              <label>Competitors in evaluation</label>
+              <input type="text" id="i-competitors" placeholder="e.g. Apache Ignite, AWS ElastiCache" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Competitive FUD / objections to address</label>
+            <textarea id="i-fud" placeholder="'Redis is open source and we don't need to pay…' / 'Ignite has better SQL…' — and your counter-responses."></textarea>
+          </div>
+          <div class="field">
+            <label>Our key differentiators for THIS deal</label>
+            <textarea id="i-diff" placeholder="Specific reasons we win THIS account — not generic positioning. e.g. CP subsystem matters because they need linearisable locks for settlement."></textarea>
+          </div>
+        </div>
+
+        <!-- I4: Risk Register -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num" style="background:var(--coral-dim);border-color:rgba(244,63,94,.3);color:var(--coral);">I4</div>
+            <div><div class="section-title">Risk Register</div><div class="section-desc">Click rating to cycle Low → Medium → High</div></div>
+          </div>
+          <table class="risk-table">
+            <thead><tr><th style="width:70%">Risk</th><th>Rating</th></tr></thead>
+            <tbody id="risk-tbody">
+              <tr><td>Scope creep — customer adds requirements mid-POC</td><td><span class="tag tag-coral risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">High</span></td></tr>
+              <tr><td>Infrastructure not ready by kickoff</td><td><span class="tag tag-amber risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">Medium</span></td></tr>
+              <tr><td>Customer resource unavailability (&lt;0.5 FTE)</td><td><span class="tag tag-amber risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">Medium</span></td></tr>
+              <tr><td>Competitive interference / FUD during POC</td><td><span class="tag tag-teal risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">Low</span></td></tr>
+              <tr><td>Data privacy / compliance blocker</td><td><span class="tag tag-amber risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">Medium</span></td></tr>
+              <tr><td>Champion changes role or leaves org</td><td><span class="tag tag-teal risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">Low</span></td></tr>
+              <tr><td>Perf SLA not achievable on POC hardware</td><td><span class="tag tag-amber risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">Medium</span></td></tr>
+              <tr><td>No pre-agreed decision path</td><td><span class="tag tag-coral risk-pill" onclick="cycleRisk(this)" style="cursor:pointer;">High</span></td></tr>
+            </tbody>
+          </table>
+          <div class="field" style="margin-top:16px;">
+            <label>Additional risks & mitigations</label>
+            <textarea id="i-risks-extra" placeholder="Deal-specific risks and your mitigation plan for each…" style="min-height:56px;"></textarea>
+          </div>
+        </div>
+
+        <!-- I5: RACI & SE Notes -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-num" style="background:var(--coral-dim);border-color:rgba(244,63,94,.3);color:var(--coral);">I5</div>
+            <div><div class="section-title">RACI & Effort Model</div><div class="section-desc">Internal resource allocation</div></div>
+          </div>
+          <table class="raci-table" style="margin-bottom:16px;">
+            <thead><tr><th>Activity</th><th>SE</th><th>Prospect</th><th>AE</th><th>Partner</th></tr></thead>
+            <tbody>
+              <tr><td>Architecture design</td><td class="raci-R">R</td><td class="raci-C">C</td><td class="raci-I">I</td><td class="raci-C">C</td></tr>
+              <tr><td>Infra provisioning</td><td class="raci-C">C</td><td class="raci-R">R</td><td class="raci-I">I</td><td class="raci-C">C</td></tr>
+              <tr><td>Cluster setup</td><td class="raci-R">R</td><td class="raci-C">C</td><td class="raci-I">I</td><td class="raci-A">A</td></tr>
+              <tr><td>Load test execution</td><td class="raci-R">R</td><td class="raci-A">A</td><td class="raci-I">I</td><td class="raci-I">—</td></tr>
+              <tr><td>Exit criteria tracking</td><td class="raci-R">R</td><td class="raci-A">A</td><td class="raci-R">R</td><td class="raci-I">—</td></tr>
+              <tr><td>Commercial follow-up</td><td class="raci-I">I</td><td class="raci-C">C</td><td class="raci-R">R</td><td class="raci-C">C</td></tr>
+            </tbody>
+          </table>
+          <div class="two-col">
+            <div class="field">
+              <label>SE effort estimate</label>
+              <select id="i-effort">
+                <option>Light — 4 SE-days</option>
+                <option>Standard — 8 SE-days</option>
+                <option selected>Deep — 15 SE-days</option>
+                <option>Full-time — 25 SE-days</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Deal size estimate</label>
+              <input type="text" id="i-deal-size" placeholder="e.g. $150K ARR / ₹1.2Cr" />
+            </div>
+          </div>
+          <div class="field">
+            <label>SE field notes (private)</label>
+            <textarea id="i-se-notes" placeholder="Anything you'd write in your CRM that you'd never want the customer to see. Call recordings, instincts, red flags…"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="poc-sidebar">
+      <div class="sidebar-card" id="sidebar-meta">
+        <div style="font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">POC Details</div>
+        <div class="sidebar-row"><span class="sidebar-key">Account</span><span class="sidebar-val" id="sb-account">—</span></div>
+        <div class="sidebar-row"><span class="sidebar-key">Vertical</span><span class="sidebar-val" id="sb-vertical">—</span></div>
+        <div class="sidebar-row"><span class="sidebar-key">Stage</span><span class="sidebar-val" id="sb-stage">—</span></div>
+        <div class="sidebar-row"><span class="sidebar-key">SE Owner</span><span class="sidebar-val" id="sb-se">—</span></div>
+        <div class="sidebar-row"><span class="sidebar-key">AE Owner</span><span class="sidebar-val" id="sb-ae">—</span></div>
+        <div class="sidebar-row"><span class="sidebar-key">Created</span><span class="sidebar-val" id="sb-created">—</span></div>
+      </div>
+
+      <div class="sidebar-card" id="sidebar-invite-wrap">
+        <div style="font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Prospect Invite</div>
+        <div class="invite-box">
+          <span class="invite-code-large" id="sb-invite-code">—</span>
+          <button class="btn btn-ghost btn-sm" onclick="copyInviteCode()">Copy</button>
+        </div>
+        <p style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5;">Share this code with the prospect so they can sign up and access only the Customer Workspace.</p>
+      </div>
+
+      <div class="sidebar-card">
+        <div style="font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;">Stage</div>
+        <select id="sb-stage-edit" onchange="updateStage()" style="font-size:13px;">
+          <option>Discovery</option>
+          <option>Technical Validation</option>
+          <option selected>POC Active</option>
+          <option>POC Complete</option>
+          <option>Negotiation</option>
+          <option>Won</option>
+          <option>Lost</option>
+          <option>On Hold</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="save-bar">
+    <span class="save-status" id="save-status">All changes saved</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-ghost btn-sm" onclick="goBack()">← Back to dashboard</button>
+      <button class="btn btn-primary btn-sm" onclick="savePoc()">Save changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: CREATE POC
+═══════════════════════════════════════════════════════════ -->
+<div id="modal-create" class="modal-backdrop hidden">
+  <div class="modal">
+    <div class="modal-title">◈ New POC Workspace</div>
+    <div class="field">
+      <label>Account / Prospect name</label>
+      <input type="text" id="new-account" placeholder="e.g. HDFC Bank, Maruti Suzuki" />
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Industry vertical</label>
+        <select id="new-vertical">
+          <option value="">— select —</option>
+          <option>Banking / Financial Services</option>
+          <option>Insurance</option>
+          <option>Payments / Fintech</option>
+          <option>Connected Automotive</option>
+          <option>Retail / eCommerce</option>
+          <option>Telco</option>
+          <option>Healthcare</option>
+          <option>Manufacturing</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>POC type</label>
+        <select id="new-type">
+          <option>Hands-on customer lab</option>
+          <option>SE-led demo POC</option>
+          <option>Bake-off / competitive</option>
+          <option>Partner-delivered</option>
+        </select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>SE Owner</label>
+        <input type="text" id="new-se" placeholder="Your name" />
+      </div>
+      <div class="field">
+        <label>AE Partner</label>
+        <input type="text" id="new-ae" placeholder="AE name" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createPoc()">Create workspace →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════ -->
+<script>
+// ── App state ────────────────────────────────────────────────────
+let currentUser = null;
+let currentPoc  = null;
+let currentPocTab = 'external';
+
+// ── API helper ───────────────────────────────────────────────────
+// Wraps fetch(); redirects to login on 401.
+async function api(url, opts = {}) {
+  const res = await fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+    credentials: 'same-origin',
+  });
+  if (res.status === 401) { doLogout(); return null; }
+  return res;
+}
+
+// ── Init ─────────────────────────────────────────────────────────
+(async function init() {
+  const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+  if (res.ok) {
+    const data = await res.json();
+    currentUser = data.user;
+    await showApp();
+  } else {
+    showPage('login');
+  }
+})();
+
+// ── Pages ────────────────────────────────────────────────────────
+function showPage(name) {
+  ['login','dashboard','poc'].forEach(p => document.getElementById('page-'+p).classList.add('hidden'));
+  document.getElementById('topbar').classList.add('hidden');
+  document.getElementById('page-'+name).classList.remove('hidden');
+  if (name !== 'login') document.getElementById('topbar').classList.remove('hidden');
+}
+
+async function showApp() {
+  if (!currentUser) { showPage('login'); return; }
+  updateTopbar();
+  if (currentUser.role === 'admin') {
+    showPage('dashboard');
+    await renderDashboard();
+  } else {
+    if (currentUser.pocId) {
+      await openPoc(currentUser.pocId);
+    } else {
+      showPage('login');
+      showToast('No POC assigned to your account yet.');
+    }
+  }
+}
+
+function updateTopbar() {
+  if (!currentUser) return;
+  const initials = currentUser.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('tb-avatar').textContent = initials;
+  document.getElementById('tb-name').textContent = currentUser.name;
+  const roleEl = document.getElementById('tb-role');
+  roleEl.textContent = currentUser.role === 'admin' ? 'SE / AE' : 'Prospect';
+  roleEl.className = 'tag ' + (currentUser.role === 'admin' ? 'tag-blue' : 'tag-teal');
+}
+
+// ── Login / Signup ───────────────────────────────────────────────
+function switchLoginTab(tab) {
+  document.querySelectorAll('.login-tab').forEach((el,i) => el.classList.toggle('active', (i===0 && tab==='signin') || (i===1 && tab==='signup')));
+  document.getElementById('signin-form').classList.toggle('hidden', tab !== 'signin');
+  document.getElementById('signup-form').classList.toggle('hidden', tab !== 'signup');
+}
+
+function togglePocCode() {
+  const role = document.getElementById('su-role').value;
+  document.getElementById('poc-code-field').style.display = role === 'prospect' ? 'block' : 'none';
+  document.getElementById('admin-code-field').style.display = role === 'admin' ? 'block' : 'none';
+}
+
+async function doSignIn() {
+  const email = document.getElementById('si-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('si-password').value;
+  const errEl = document.getElementById('si-error');
+  errEl.style.display = 'none';
+
+  const res = await api('/api/auth/signin', {
+    method: 'POST',
+    body: JSON.stringify({ email, password: pass }),
+  });
+  if (!res) return;
+  const data = await res.json();
+  if (!res.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+  currentUser = data.user;
+  await showApp();
+}
+
+async function doSignUp() {
+  const name  = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('su-password').value;
+  const role  = document.getElementById('su-role').value;
+  const errEl = document.getElementById('su-error');
+  errEl.style.display = 'none';
+
+  const body = { name, email, password: pass, role };
+  if (role === 'prospect') {
+    body.inviteCode = document.getElementById('su-code').value.trim().toUpperCase();
+  } else {
+    body.adminCode = document.getElementById('su-admin-code').value;
+  }
+
+  const res = await api('/api/auth/signup', { method: 'POST', body: JSON.stringify(body) });
+  if (!res) return;
+  const data = await res.json();
+  if (!res.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+  currentUser = data.user;
+  await showApp();
+  showToast('Welcome, ' + name + '!');
+}
+
+async function doLogout() {
+  await fetch('/api/auth/signout', { method: 'POST', credentials: 'same-origin' });
+  currentUser = null;
+  currentPoc  = null;
+  showPage('login');
+}
+
+// ── Dashboard ────────────────────────────────────────────────────
+async function renderDashboard() {
+  const res = await api('/api/pocs');
+  if (!res || !res.ok) return;
+  const pocs = await res.json();
+
+  const grid  = document.getElementById('poc-grid');
+  const empty = document.getElementById('poc-empty');
+  grid.innerHTML = '';
+
+  document.getElementById('stat-total').textContent  = pocs.length;
+  document.getElementById('stat-active').textContent = pocs.filter(p => p.stage === 'POC Active' || p.stage === 'Technical Validation').length;
+  document.getElementById('stat-closed').textContent = pocs.filter(p => p.stage === 'Won').length;
+  document.getElementById('dash-subtitle').textContent = currentUser.name + ' — ' + pocs.length + ' workspace' + (pocs.length !== 1 ? 's' : '');
+
+  if (!pocs.length) { empty.classList.remove('hidden'); return; }
+  empty.classList.add('hidden');
+
+  const stageColor = { 'Discovery':'tag-gray', 'Technical Validation':'tag-blue', 'POC Active':'tag-teal', 'POC Complete':'tag-amber', 'Won':'tag-green', 'Lost':'tag-coral', 'On Hold':'tag-gray', 'Negotiation':'tag-amber' };
+
+  pocs.forEach(poc => {
+    const card = document.createElement('div');
+    card.className = 'poc-card';
+    card.onclick = () => openPoc(poc.id);
+    card.innerHTML = `
+      <div class="poc-card-header">
+        <div>
+          <div class="poc-card-account">${esc(poc.account)}</div>
+          <div class="poc-card-meta">${esc(poc.vertical || '—')} · ${esc(poc.type || '—')}</div>
+        </div>
+        <span class="tag ${stageColor[poc.stage]||'tag-gray'}">${esc(poc.stage||'—')}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);">Updated ${timeAgo(poc.updatedAt||poc.createdAt)}</div>
+      <div class="poc-card-footer">
+        <span class="poc-card-owners">SE: ${esc(poc.seOwner)} · AE: ${esc(poc.aeOwner)}</span>
+        <span style="flex:1;"></span>
+        <span class="invite-code"><span style="opacity:.5">🔑</span> ${esc(poc.inviteCode)} <span class="copy-btn" onclick="event.stopPropagation();copyText('${esc(poc.inviteCode)}')">⎘</span></span>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── POC Detail ───────────────────────────────────────────────────
+async function openPoc(id) {
+  const res = await api('/api/pocs/' + id);
+  if (!res || !res.ok) return;
+  currentPoc = await res.json();
+
+  document.getElementById('poc-crumb').textContent       = currentPoc.account;
+  document.getElementById('poc-crumb-stage').textContent = currentPoc.stage || 'POC Active';
+
+  document.getElementById('sb-account').textContent  = currentPoc.account;
+  document.getElementById('sb-vertical').textContent = currentPoc.vertical || '—';
+  document.getElementById('sb-stage').textContent    = currentPoc.stage || '—';
+  document.getElementById('sb-se').textContent       = currentPoc.seOwner || '—';
+  document.getElementById('sb-ae').textContent       = currentPoc.aeOwner || '—';
+  document.getElementById('sb-created').textContent  = formatDate(currentPoc.createdAt);
+  document.getElementById('sb-invite-code').textContent = currentPoc.inviteCode;
+  document.getElementById('sb-stage-edit').value     = currentPoc.stage || 'POC Active';
+
+  const isAdmin = currentUser.role === 'admin';
+  document.getElementById('tab-internal').style.display        = isAdmin ? 'flex' : 'none';
+  document.getElementById('prospect-banner').style.display     = isAdmin ? 'none' : 'flex';
+  document.getElementById('sidebar-invite-wrap').style.display = isAdmin ? 'block' : 'none';
+
+  const ext = currentPoc.external || {};
+  setVal('e-usecase', ext.usecase);
+  setVal('e-usecase2', ext.usecase2);
+  setVal('e-scope-narrative', ext.scopeNarrative);
+  setVal('e-data-vol', ext.dataVol);
+  setVal('e-throughput', ext.throughput);
+  setVal('e-env', ext.env);
+  setVal('e-proddata', ext.proddata);
+  setVal('e-perf-metric', ext.perfMetric);
+  setVal('e-perf-target', ext.perfTarget);
+  setVal('e-func-crit', ext.funcCrit);
+  setVal('e-ops-crit', ext.opsCrit);
+  setVal('e-int-crit', ext.intCrit);
+  setVal('e-extra-crit', ext.extraCrit);
+  setVal('e-out-scope', ext.outScope);
+  setVal('e-kickoff', ext.kickoff);
+  setVal('e-duration', ext.duration);
+  setVal('e-readout', ext.readout);
+  setVal('e-timeline-notes', ext.timelineNotes);
+  setVal('e-go', ext.go);
+  setVal('e-nogo', ext.nogo);
+  setVal('e-comms', ext.comms);
+
+  document.querySelectorAll('#capabilities-list input[type=checkbox]').forEach(cb => {
+    cb.checked = (ext.capabilities || []).includes(cb.value);
+  });
+  document.querySelectorAll('#prereq-list input[type=checkbox]').forEach(cb => {
+    cb.checked = (ext.prereqs || []).includes(cb.value);
+  });
+
+  if (isAdmin) {
+    const int = currentPoc.internal || {};
+    setVal('i-pain', int.pain);
+    setVal('i-impact', int.impact);
+    setVal('i-initiative', int.initiative);
+    setVal('i-urgency', int.urgency);
+    setVal('i-buyer', int.buyer);
+    setVal('i-champion', int.champion);
+    setVal('i-champ-win', int.champWin);
+    setVal('i-blocker', int.blocker);
+    setVal('i-politics', int.politics);
+    setVal('i-incumbent', int.incumbent);
+    setVal('i-competitors', int.competitors);
+    setVal('i-fud', int.fud);
+    setVal('i-diff', int.diff);
+    setVal('i-risks-extra', int.risksExtra);
+    setVal('i-effort', int.effort);
+    setVal('i-deal-size', int.dealSize);
+    setVal('i-se-notes', int.seNotes);
+  }
+
+  switchPocTab('external');
+  showPage('poc');
+}
+
+function switchPocTab(tab) {
+  currentPocTab = tab;
+  document.getElementById('content-external').classList.toggle('hidden', tab !== 'external');
+  document.getElementById('content-internal').classList.toggle('hidden', tab !== 'internal');
+  document.getElementById('tab-external').classList.toggle('active', tab === 'external');
+  document.getElementById('tab-internal').classList.toggle('active', tab === 'internal');
+}
+
+async function savePoc() {
+  if (!currentPoc) return;
+
+  const external = {
+    usecase:        getVal('e-usecase'),
+    usecase2:       getVal('e-usecase2'),
+    scopeNarrative: getVal('e-scope-narrative'),
+    dataVol:        getVal('e-data-vol'),
+    throughput:     getVal('e-throughput'),
+    env:            getVal('e-env'),
+    proddata:       getVal('e-proddata'),
+    capabilities:   [...document.querySelectorAll('#capabilities-list input:checked')].map(c => c.value),
+    perfMetric:     getVal('e-perf-metric'),
+    perfTarget:     getVal('e-perf-target'),
+    funcCrit:       getVal('e-func-crit'),
+    opsCrit:        getVal('e-ops-crit'),
+    intCrit:        getVal('e-int-crit'),
+    extraCrit:      getVal('e-extra-crit'),
+    outScope:       getVal('e-out-scope'),
+    kickoff:        getVal('e-kickoff'),
+    duration:       getVal('e-duration'),
+    readout:        getVal('e-readout'),
+    timelineNotes:  getVal('e-timeline-notes'),
+    prereqs:        [...document.querySelectorAll('#prereq-list input:checked')].map(c => c.value),
+    go:             getVal('e-go'),
+    nogo:           getVal('e-nogo'),
+    comms:          getVal('e-comms'),
+  };
+
+  const body = { external };
+  if (currentUser.role === 'admin') {
+    body.internal = {
+      pain:       getVal('i-pain'),
+      impact:     getVal('i-impact'),
+      initiative: getVal('i-initiative'),
+      urgency:    getVal('i-urgency'),
+      buyer:      getVal('i-buyer'),
+      champion:   getVal('i-champion'),
+      champWin:   getVal('i-champ-win'),
+      blocker:    getVal('i-blocker'),
+      politics:   getVal('i-politics'),
+      incumbent:  getVal('i-incumbent'),
+      competitors:getVal('i-competitors'),
+      fud:        getVal('i-fud'),
+      diff:       getVal('i-diff'),
+      risksExtra: getVal('i-risks-extra'),
+      effort:     getVal('i-effort'),
+      dealSize:   getVal('i-deal-size'),
+      seNotes:    getVal('i-se-notes'),
+    };
+  }
+
+  const res = await api('/api/pocs/' + currentPoc.id, { method: 'PUT', body: JSON.stringify(body) });
+  if (!res || !res.ok) { showToast('Error saving — check connection'); return; }
+  const updated = await res.json();
+  currentPoc = { ...currentPoc, ...updated };
+
+  const ss = document.getElementById('save-status');
+  ss.textContent = '✓ Saved ' + new Date().toLocaleTimeString();
+  ss.className = 'save-status saved';
+  setTimeout(() => { ss.textContent = 'All changes saved'; ss.className = 'save-status'; }, 3000);
+  showToast('Changes saved');
+}
+
+async function updateStage() {
+  if (!currentPoc) return;
+  const stage = document.getElementById('sb-stage-edit').value;
+  const res = await api('/api/pocs/' + currentPoc.id, {
+    method: 'PUT',
+    body: JSON.stringify({ stage }),
+  });
+  if (!res || !res.ok) return;
+  const updated = await res.json();
+  document.getElementById('sb-stage').textContent       = updated.stage;
+  document.getElementById('poc-crumb-stage').textContent = updated.stage;
+  currentPoc.stage = updated.stage;
+}
+
+async function goBack() {
+  showPage('dashboard');
+  await renderDashboard();
+}
+
+// ── Create POC modal ─────────────────────────────────────────────
+function openCreateModal()  { document.getElementById('modal-create').classList.remove('hidden'); }
+function closeCreateModal() { document.getElementById('modal-create').classList.add('hidden'); }
+
+async function createPoc() {
+  const account = document.getElementById('new-account').value.trim();
+  if (!account) { showToast('Enter account name'); return; }
+
+  const res = await api('/api/pocs', {
+    method: 'POST',
+    body: JSON.stringify({
+      account,
+      vertical: document.getElementById('new-vertical').value,
+      type:     document.getElementById('new-type').value,
+      seOwner:  document.getElementById('new-se').value || currentUser.name,
+      aeOwner:  document.getElementById('new-ae').value,
+    }),
+  });
+  if (!res || !res.ok) { showToast('Error creating POC'); return; }
+  const poc = await res.json();
+  closeCreateModal();
+  ['new-account','new-se','new-ae'].forEach(id => document.getElementById(id).value = '');
+  await openPoc(poc.id);
+  showToast('POC workspace created · Invite code: ' + poc.inviteCode);
+}
+
+// ── Risk cycling ─────────────────────────────────────────────────
+function cycleRisk(el) {
+  const states = [['Low','tag-teal'],['Medium','tag-amber'],['High','tag-coral']];
+  const cur  = states.findIndex(s => el.classList.contains(s[1]));
+  const next = (cur + 1) % 3;
+  el.classList.remove('tag-teal','tag-amber','tag-coral');
+  el.classList.add(states[next][1]);
+  el.textContent = states[next][0];
+}
+
+// ── Invite code copy ─────────────────────────────────────────────
+function copyInviteCode() { if (currentPoc) copyText(currentPoc.inviteCode); }
+function copyText(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('Copied: ' + text))
+    .catch(() => showToast('Code: ' + text));
+}
+
+// ── Toast ────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── Helpers ──────────────────────────────────────────────────────
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getVal(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function setVal(id, val) { const el = document.getElementById(id); if (el) el.value = val || ''; }
+function formatDate(iso) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }); }
+function timeAgo(iso) {
+  if (!iso) return 'never';
+  const diff = Date.now() - new Date(iso).getTime();
+  const h = Math.floor(diff / 36e5);
+  if (h < 1) return 'just now';
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + 'd ago';
+  return Math.floor(d/7) + 'w ago';
+}
+
+// Auto-save on blur (skip the stage select — that has its own handler)
+document.addEventListener('focusout', (e) => {
+  if (e.target.id === 'sb-stage-edit') return;
+  if (currentPoc && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+    const ss = document.getElementById('save-status');
+    if (ss) { ss.textContent = 'Auto-saving…'; ss.className = 'save-status'; }
+    setTimeout(() => savePoc(), 300);
+  }
+});
+
+// Close modal on backdrop click
+document.getElementById('modal-create').addEventListener('click', function(e) {
+  if (e.target === this) closeCreateModal();
+});
+
+// Enter key on sign-in password field
+document.getElementById('si-password').addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
+</script>
+</body>
+</html>

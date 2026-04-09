@@ -1,0 +1,34 @@
+# Version control
+.git
+.gitignore
+
+# Docker meta
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Secrets — never bake into image
+.env
+.env.*
+*.pem
+*.key
+*.crt
+
+# Backend & DB source (not needed in the nginx image)
+backend/
+db/
+
+# Editor / OS artefacts
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Memory / project files
+.claude/
