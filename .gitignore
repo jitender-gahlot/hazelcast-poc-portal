@@ -21,5 +21,11 @@ Thumbs.db
 *.log
 logs/
 
+# DB backups
+backups/
+
+# Caddy data (certs, keys)
+caddy_data/
+
 # Claude memory
 .claude/

@@ -5,6 +5,27 @@ const logger = require('./logger');
 const authRoutes = require('./routes/auth');
 const pocRoutes = require('./routes/pocs');
 
+// ── Startup secret validation ─────────────────────────────────────
+// Refuse to start with dangerously weak configuration.
+const WEAK_VALUES = new Set(['changeme', 'secret', 'password', 'admin', 'SE2024', 'test', '']);
+const fatal = (msg) => { logger.error(`STARTUP ABORT: ${msg}`); process.exit(1); };
+
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)
+  fatal('JWT_SECRET must be at least 32 characters. Generate one with: openssl rand -hex 32');
+
+if (WEAK_VALUES.has(process.env.JWT_SECRET))
+  fatal('JWT_SECRET is set to a known weak value. Set a strong random secret in .env');
+
+if (!process.env.ADMIN_REGISTRATION_CODE || process.env.ADMIN_REGISTRATION_CODE.length < 12)
+  fatal('ADMIN_REGISTRATION_CODE must be at least 12 characters to prevent brute-force.');
+
+if (WEAK_VALUES.has(process.env.ADMIN_REGISTRATION_CODE))
+  fatal('ADMIN_REGISTRATION_CODE is set to a known default (SE2024). Change it in .env');
+
+if (!process.env.DATABASE_URL)
+  fatal('DATABASE_URL is not set.');
+// ─────────────────────────────────────────────────────────────────
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

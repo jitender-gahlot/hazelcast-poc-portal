@@ -1,0 +1,17 @@
+{
+    # Let's Encrypt contact email (required for cert issuance)
+    email {$TLS_EMAIL}
+}
+
+# {$DOMAIN} is set via environment variable in docker-compose.
+# - If DOMAIN=localhost, Caddy uses its local CA (self-signed, no public cert needed)
+# - If DOMAIN=yourapp.example.com, Caddy auto-obtains a Let's Encrypt cert
+#   (server must be publicly reachable on port 80/443 for ACME challenge)
+{$DOMAIN:localhost} {
+    reverse_proxy frontend:8080
+
+    log {
+        output stdout
+        format json
+    }
+}
