@@ -66,8 +66,8 @@ services:
       DATABASE_URL:            postgresql://${POSTGRES_USER:-pocuser}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pocportal}
       JWT_SECRET:              ${JWT_SECRET:?Set JWT_SECRET in .env}
       ADMIN_REGISTRATION_CODE: ${ADMIN_REGISTRATION_CODE:?Set ADMIN_REGISTRATION_CODE in .env}
-      # Cloudflare terminates TLS so cookies arrive over HTTPS — set to true
-      COOKIE_SECURE:           ${COOKIE_SECURE:-true}
+      # false for local HTTP dev, true when behind Cloudflare (set in .env)
+      COOKIE_SECURE:           ${COOKIE_SECURE:-false}
       LOG_LEVEL:               ${LOG_LEVEL:-info}
     depends_on:
       postgres:
