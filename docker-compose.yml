@@ -33,11 +33,11 @@ services:
     restart: unless-stopped
     entrypoint: ["sh", "/backup.sh"]
     environment:
-      POSTGRES_DB:              ${POSTGRES_DB:-pocportal}
-      POSTGRES_USER:            ${POSTGRES_USER:-pocuser}
-      POSTGRES_PASSWORD:        ${POSTGRES_PASSWORD}
-      BACKUP_RETAIN_DAYS:       ${BACKUP_RETAIN_DAYS:-7}
-      BACKUP_INTERVAL_SECONDS:  ${BACKUP_INTERVAL_SECONDS:-21600}
+      POSTGRES_DB:             ${POSTGRES_DB:-pocportal}
+      POSTGRES_USER:           ${POSTGRES_USER:-pocuser}
+      POSTGRES_PASSWORD:       ${POSTGRES_PASSWORD}
+      BACKUP_RETAIN_DAYS:      ${BACKUP_RETAIN_DAYS:-7}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-21600}
     volumes:
       - ./db/backup.sh:/backup.sh:ro
       - ./backups:/backups
@@ -61,13 +61,14 @@ services:
     container_name: poc-backend
     restart: unless-stopped
     environment:
-      NODE_ENV:                 production
-      PORT:                     3000
-      DATABASE_URL:             postgresql://${POSTGRES_USER:-pocuser}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pocportal}
-      JWT_SECRET:               ${JWT_SECRET:?Set JWT_SECRET in .env}
-      ADMIN_REGISTRATION_CODE:  ${ADMIN_REGISTRATION_CODE:?Set ADMIN_REGISTRATION_CODE in .env}
-      COOKIE_SECURE:            ${COOKIE_SECURE:-false}
-      LOG_LEVEL:                ${LOG_LEVEL:-info}
+      NODE_ENV:                production
+      PORT:                    3000
+      DATABASE_URL:            postgresql://${POSTGRES_USER:-pocuser}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-pocportal}
+      JWT_SECRET:              ${JWT_SECRET:?Set JWT_SECRET in .env}
+      ADMIN_REGISTRATION_CODE: ${ADMIN_REGISTRATION_CODE:?Set ADMIN_REGISTRATION_CODE in .env}
+      # Cloudflare terminates TLS so cookies arrive over HTTPS — set to true
+      COOKIE_SECURE:           ${COOKIE_SECURE:-true}
+      LOG_LEVEL:               ${LOG_LEVEL:-info}
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,6 +99,8 @@ services:
           memory: 64M
 
   # ── Nginx (static frontend + reverse proxy to backend) ─────────────────────
+  # TLS is terminated by Cloudflare — nginx listens on plain HTTP.
+  # Cloudflare → port 80 on Mac Studio → nginx:8080 (internal)
   frontend:
     build:
       context: .
@@ -105,11 +108,8 @@ services:
     image: poc-portal:latest
     container_name: poc-frontend
     restart: unless-stopped
-    # Port exposed directly for local dev / non-HTTPS deployments.
-    # When using Caddy (HTTPS), set HOST_PORT= (empty) in .env so this isn't
-    # exposed publicly — Caddy routes to frontend:8080 internally.
     ports:
-      - "${HOST_PORT:-8090}:8080"
+      - "${HOST_PORT:-80}:8080"
     depends_on:
       backend:
         condition: service_healthy
@@ -139,45 +139,8 @@ services:
           cpus: "0.50"
           memory: 128M
 
-  # ── Caddy (TLS termination) ────────────────────────────────────────────────
-  # Handles HTTPS automatically:
-  #   - DOMAIN=localhost       → self-signed cert via Caddy local CA
-  #   - DOMAIN=yourdomain.com  → auto Let's Encrypt cert (server must be on 80/443)
-  # To enable: set DOMAIN and TLS_EMAIL in .env, then set COOKIE_SECURE=true
-  caddy:
-    image: caddy:2-alpine
-    container_name: poc-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"    # HTTP/3
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    environment:
-      DOMAIN:    ${DOMAIN:-localhost}
-      TLS_EMAIL: ${TLS_EMAIL:-}
-    depends_on:
-      frontend:
-        condition: service_healthy
-    networks:
-      - poc-net
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    profiles:
-      - https   # Only starts when: docker compose --profile https up
-
 volumes:
   postgres_data:
-    driver: local
-  caddy_data:
-    driver: local
-  caddy_config:
     driver: local
 
 networks:
